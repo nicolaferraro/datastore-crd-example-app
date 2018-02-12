@@ -1,0 +1,62 @@
+---
+apiVersion: nicolaferraro.me/v1alpha1
+kind: DataStore
+metadata:
+  annotations:
+    fabric8.io/iconUrl: img/icons/spring-boot.svg
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=datastore-crd-example-app&var-version=1.0-SNAPSHOT
+  labels:
+    app: datastore-crd-example-app
+    provider: fabric8
+    version: 1.0-SNAPSHOT
+    group: me.nicolaferraro.datastore
+  name: datastore-crd-example-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: datastore-crd-example-app
+      provider: fabric8
+      group: me.nicolaferraro.datastore
+  serviceName: datastore-crd-example-app
+  template:
+    metadata:
+      labels:
+        app: datastore-crd-example-app
+        provider: fabric8
+        version: 1.0-SNAPSHOT
+        group: me.nicolaferraro.datastore
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: datastore/datastore-crd-example-app:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 180
+        name: spring-boot
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 9779
+          name: prometheus
+          protocol: TCP
+        - containerPort: 8778
+          name: jolokia
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+        securityContext:
+          privileged: false
